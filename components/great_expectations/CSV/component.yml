@@ -1,7 +1,9 @@
 name: Validate csv using greatexpectations
 inputs:
-- name: input_data
-- name: expectation_suite
+- name: input_path
+  type: String
+- name: expectation_suite_path
+  type: String
 outputs:
 - name: mlpipeline_ui_metadata
 implementation:
@@ -24,8 +26,8 @@ implementation:
           return file_path
 
       def validate_csv_using_greatexpectations(
-          input_data ,
-          expectation_suite ,
+          input_path ,
+          expectation_suite_path ,
           mlpipeline_ui_metadata_path ,
       ):
           import json
@@ -60,7 +62,7 @@ implementation:
               return result
 
           expectation_suite = _read_from_gcs(expectation_suite_path, return_as=_JSON)
-          data = _read_from_gcs(csv_path, return_as=_BYTES)
+          data = _read_from_gcs(input_path, return_as=_BYTES)
           df = ge.read_csv(data, expectation_suite=expectation_suite)
           result = df.validate()
 
@@ -79,8 +81,8 @@ implementation:
 
       import argparse
       _parser = argparse.ArgumentParser(prog='Validate csv using greatexpectations', description='')
-      _parser.add_argument("--input-data", dest="input_data", type=str, required=True, default=argparse.SUPPRESS)
-      _parser.add_argument("--expectation-suite", dest="expectation_suite", type=str, required=True, default=argparse.SUPPRESS)
+      _parser.add_argument("--input-path", dest="input_path", type=str, required=True, default=argparse.SUPPRESS)
+      _parser.add_argument("--expectation-suite-path", dest="expectation_suite_path", type=str, required=True, default=argparse.SUPPRESS)
       _parser.add_argument("--mlpipeline-ui-metadata", dest="mlpipeline_ui_metadata_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
       _parsed_args = vars(_parser.parse_args())
       _output_files = _parsed_args.pop("_output_paths", [])
@@ -100,9 +102,9 @@ implementation:
           with open(output_file, 'w') as f:
               f.write(_output_serializers[idx](_outputs[idx]))
     args:
-    - --input-data
-    - inputPath: input_data
-    - --expectation-suite
-    - inputPath: expectation_suite
+    - --input-path
+    - inputValue: input_path
+    - --expectation-suite-path
+    - inputValue: expectation_suite_path
     - --mlpipeline-ui-metadata
     - outputPath: mlpipeline_ui_metadata

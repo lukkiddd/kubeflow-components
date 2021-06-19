@@ -5,8 +5,8 @@ Reference: https://github.com/kubeflow/pipelines/blob/master/components/great-ex
 from kfp.components import InputPath, OutputPath, create_component_from_func
 
 def validate_csv_using_greatexpectations(
-    input_data: str,
-    expectation_suite: str,
+    input_path: str,
+    expectation_suite_path: str,
     mlpipeline_ui_metadata_path: OutputPath(),
 ):
     import json
@@ -40,8 +40,8 @@ def validate_csv_using_greatexpectations(
             return io.BytesIO(result)
         return result
         
-    expectation_suite = _read_from_gcs(expectation_suite, return_as=_JSON)
-    data = _read_from_gcs(input_data, return_as=_BYTES)
+    expectation_suite = _read_from_gcs(expectation_suite_path, return_as=_JSON)
+    data = _read_from_gcs(input_path, return_as=_BYTES)
     df = ge.read_csv(data, expectation_suite=expectation_suite)
     result = df.validate()
 
