@@ -2,49 +2,44 @@
 Reference: https://github.com/kubeflow/pipelines/blob/master/components/great-expectations/validate/CSV/component.py
 
 """
-
 from kfp.components import InputPath, OutputPath, create_component_from_func
-import json
-import os
-import sys
-
-import great_expectations as ge
-from great_expectations.render import DefaultJinjaPageView
-from great_expectations.render.renderer import ValidationResultsPageRenderer
-from google.cloud import storage
-import io
-
-
-_JSON = "json"
-_BYTES = "bytes"
-_GCS_PREFIX = "gs://"
-
-def _read_from_gcs(gcs_path: str, return_as=_JSON):
-    storage_client = storage.Client()
-    if not gcs_path.startswith(_GCS_PREFIX):
-        raise ValueError(f"Path should start with 'gs://', found: {gcs_path}")
-    
-    bucket_name = gcs_path.split("/")[2]
-    file_path = '/'.join(gcs_path.split("/")[3:])
-    bucket = storage_client.get_bucket(bucket_name)
-    blob = bucket.get_blob(file_path)
-    if not blob:
-        raise ValueError(f"Path {gcs_path} do not exists.")
-        
-    result = blob.download_as_string()
-    
-    if return_as == _JSON:
-        return json.loads(result)
-    elif return_as == _BYTES:
-        return io.BytesIO(result)
-    return result
 
 def validate_csv_using_greatexpectations(
-    csv_path: InputPath(),
-    expectation_suite_path: InputPath(),
+    input_data: InputPath(),
+    expectation_suite: InputPath(),
     mlpipeline_ui_metadata_path: OutputPath(),
 ):
-    
+    import json
+    import great_expectations as ge
+    from great_expectations.render import DefaultJinjaPageView
+    from great_expectations.render.renderer import ValidationResultsPageRenderer
+    from google.cloud import storage
+    import io
+
+    _JSON = "json"
+    _BYTES = "bytes"
+    _GCS_PREFIX = "gs://"
+
+    def _read_from_gcs(gcs_path: str, return_as=_JSON):
+        storage_client = storage.Client()
+        if not gcs_path.startswith(_GCS_PREFIX):
+            raise ValueError(f"Path must start with 'gs://', found: {gcs_path}")
+        
+        bucket_name = gcs_path.split("/")[2]
+        file_path = '/'.join(gcs_path.split("/")[3:])
+        bucket = storage_client.get_bucket(bucket_name)
+        blob = bucket.get_blob(file_path)
+        if not blob:
+            raise ValueError(f"Path {gcs_path} do not exists.")
+            
+        result = blob.download_as_string()
+        
+        if return_as == _JSON:
+            return json.loads(result)
+        elif return_as == _BYTES:
+            return io.BytesIO(result)
+        return result
+        
     expectation_suite = _read_from_gcs(expectation_suite_path, return_as=_JSON)
     data = _read_from_gcs(csv_path, return_as=_BYTES)
     df = ge.read_csv(data, expectation_suite=expectation_suite)
