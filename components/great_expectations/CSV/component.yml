@@ -36,6 +36,7 @@ implementation:
           from great_expectations.render.renderer import ValidationResultsPageRenderer
           from google.cloud import storage
           import io
+          import sys
 
           _JSON = "json"
           _BYTES = "bytes"
@@ -77,6 +78,8 @@ implementation:
           }
           with open(mlpipeline_ui_metadata_path, 'w') as metadata_file:
               json.dump(metadata, metadata_file)
+          if not result.success:
+              sys.exit(1)
           return metadata
 
       import argparse
