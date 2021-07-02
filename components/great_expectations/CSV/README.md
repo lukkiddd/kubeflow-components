@@ -35,7 +35,7 @@ Reference: https://github.com/kubeflow/pipelines/tree/master/components/great-ex
 
 ```python
 from kfp.components import load_component_from_uri
-component_uri = "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/great-expectations/validate/CSV/component.yaml"
+component_uri = "https://raw.githubusercontent.com/lukkiddd/kubeflow-components/main/components/great_expectations/CSV/component.yml"
 validate_op = load_component_from_url(component_uri)
 ```
 
