@@ -15,7 +15,8 @@ def validate_csv_using_greatexpectations(
     from great_expectations.render.renderer import ValidationResultsPageRenderer
     from google.cloud import storage
     import io
-
+    import sys
+    
     _JSON = "json"
     _BYTES = "bytes"
     _GCS_PREFIX = "gs://"
@@ -56,6 +57,8 @@ def validate_csv_using_greatexpectations(
     }
     with open(mlpipeline_ui_metadata_path, 'w') as metadata_file:
         json.dump(metadata, metadata_file)
+    if not result.success:
+        sys.exit(1)
     return metadata
 
 if __name__ == "__main__":
