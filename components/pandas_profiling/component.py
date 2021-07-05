@@ -1,8 +1,4 @@
-"""
-Reference: https://github.com/kubeflow/pipelines/blob/master/components/great-expectations/validate/CSV/component.py
-
-"""
-from kfp.components import OutputPath, create_component_from_func
+from kfp.components import InputPath, OutputPath, create_component_from_func, GC
 
 def pandas_profiling_components(
     input_path: str,
@@ -30,10 +26,8 @@ def pandas_profiling_components(
         result = blob.download_as_string()
         return io.BytesIO(result)
     
-    print(f"Reading data from {input_path}")
     data = _read_from_gcs(input_path)
     df = pd.read_csv(data, index_col=0)
-    print(df.head())
     profile = ProfileReport(df, title="Profiling Report", explorative=True)
     
     metadata = {
@@ -53,5 +47,5 @@ if __name__ == "__main__":
         pandas_profiling_components,
         output_component_file='component.yml',
         base_image='python:3.8',
-        packages_to_install=['pandas-profiling==2.8.0', 'google-cloud-storage==1.29.0']
+        packages_to_install=['pandas-profiling', 'google-cloud-storage==1.29.0']
     )
